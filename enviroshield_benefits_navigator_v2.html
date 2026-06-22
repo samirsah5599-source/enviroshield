@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EnviroShield — Benefits & Enrollment Navigator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  --bg:#F5F4F0;
+  --surface:#FFFFFF;
+  --ink:#23262B;
+  --muted:#6B7280;
+  --border:#E2DFD8;
+  --navy:#2C3A55;
+  --navy-soft:#EDF0F4;
+  --gold:#C99A3E;
+  --sage:#6E9468;
+  --rose:#B95A4E;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  background:var(--bg); color:var(--ink); font-family:'Work Sans', sans-serif;
+  min-height:100vh; padding:24px;
+}
+.display{font-family:'Fraunces', serif;}
+.mono{font-family:'IBM Plex Mono', monospace;}
+
+.header{
+  display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:12px;
+  border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:18px;
+}
+.wordmark{font-family:'Fraunces',serif; font-weight:600; font-size:26px; color:var(--navy);}
+.subtitle{font-size:13px; color:var(--muted); margin-top:4px;}
+.disclosure{
+  font-size:11px; color:var(--muted); background:var(--navy-soft); border:1px solid var(--border);
+  padding:6px 12px; border-radius:4px; max-width:320px; line-height:1.4;
+}
+
+.layout{display:grid; grid-template-columns: 1.6fr 1fr; gap:18px;}
+@media(max-width:860px){.layout{grid-template-columns:1fr;}}
+
+.chat-panel{
+  background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  display:flex; flex-direction:column; height:calc(100vh - 180px); overflow:hidden;
+}
+.messages{flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:12px;}
+.bubble{max-width:80%; padding:11px 14px; border-radius:10px; font-size:13.5px; line-height:1.5;}
+.bubble.user{align-self:flex-end; background:var(--navy); color:#fff; border-bottom-right-radius:2px;}
+.bubble.assistant{align-self:flex-start; background:var(--navy-soft); color:var(--ink); border:1px solid var(--border); border-bottom-left-radius:2px;}
+.bubble.typing{align-self:flex-start; color:var(--muted); font-style:italic; font-size:12.5px;}
+
+.chips{display:flex; gap:8px; flex-wrap:wrap; padding:0 18px 12px 18px;}
+.chip{
+  font-size:11.5px; border:1px solid var(--border); background:var(--surface); color:var(--muted);
+  padding:6px 11px; border-radius:14px; cursor:pointer; transition:all .15s ease;
+}
+.chip:hover{border-color:var(--navy); color:var(--navy);}
+
+.composer{display:flex; gap:8px; padding:14px; border-top:1px solid var(--border);}
+.composer input{
+  flex:1; border:1px solid var(--border); border-radius:6px; padding:10px 12px; font-size:13.5px;
+  font-family:'Work Sans',sans-serif; background:var(--bg); color:var(--ink);
+}
+.composer input:focus{outline:none; border-color:var(--navy);}
+.composer button{
+  background:var(--navy); color:#fff; border:none; border-radius:6px; padding:0 18px; font-size:13px;
+  cursor:pointer; font-weight:500;
+}
+.composer button:disabled{opacity:0.5; cursor:default;}
+
+.side-panel{display:flex; flex-direction:column; gap:14px;}
+.side-card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:16px;}
+.side-title{
+  font-family:'Fraunces',serif; font-size:13px; font-weight:600; color:var(--navy);
+  text-transform:uppercase; letter-spacing:0.4px; margin-bottom:10px;
+}
+.pipeline-mini{display:flex; flex-direction:column; gap:8px; font-size:11.5px; color:var(--muted);}
+.pipeline-step{display:flex; align-items:center; gap:8px;}
+.pipeline-dot{width:7px; height:7px; border-radius:50%; background:var(--border); flex-shrink:0;}
+.pipeline-dot.active{background:var(--gold);}
+
+.kv{display:flex; justify-content:space-between; font-size:12.5px; padding:6px 0; border-bottom:1px solid var(--border);}
+.kv:last-child{border-bottom:none;}
+.kv .v{font-family:'IBM Plex Mono',monospace; color:var(--navy); text-align:right; max-width:60%;}
+
+.guardrail-list{font-size:12px; color:var(--muted); line-height:1.6; padding-left:16px;}
+.escalation-box{
+  background:var(--navy-soft); border:1px solid var(--border); border-radius:6px; padding:10px 12px;
+  font-size:12px; color:var(--navy); display:none;
+}
+.escalation-box.show{display:block;}
+
+.footnote{margin-top:18px; font-size:11px; color:var(--muted); border-top:1px solid var(--border); padding-top:12px;}
+.reset-link{font-size:11px; color:var(--muted); cursor:pointer; text-decoration:underline; background:none; border:none;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="wordmark">ENVIROSHIELD</div>
+    <div class="subtitle">Benefits &amp; Enrollment Navigator — for first-gen and international students</div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="chat-panel">
+    <div class="messages" id="messages"></div>
+    <div class="chips" id="chips">
+      <div class="chip" data-msg="I'm 2 credits short of what my scholarship requires and I don't know what happens next.">Short on scholarship credits</div>
+      <div class="chip" data-msg="There's a hold on my enrollment for next semester and I don't understand why.">Enrollment hold, unclear why</div>
+      <div class="chip" data-msg="I'm an international student on an F-1 visa and confused about what funding options I even have.">International student, confused on funding</div>
+    </div>
+    <div class="composer">
+      <input id="userInput" placeholder="Type your situation, in your own words..." />
+      <button id="sendBtn">Send</button>
+    </div>
+  </div>
+
+  <div class="side-panel">
+    <div class="side-card">
+      <div class="side-title">How This Works</div>
+      <div class="pipeline-mini">
+        <div class="pipeline-step"><div class="pipeline-dot" id="dot1"></div>Understand your situation (NLP intake)</div>
+        <div class="pipeline-step"><div class="pipeline-dot" id="dot2"></div>Classify the issue type</div>
+        <div class="pipeline-step"><div class="pipeline-dot" id="dot3"></div>Translate rules into plain language</div>
+        <div class="pipeline-step"><div class="pipeline-dot" id="dot4"></div>Surface next steps, never a final answer</div>
+      </div>
+    </div>
+
+    <div class="side-card">
+      <div class="side-title">Live Classification</div>
+      <div class="kv"><span>Situation type</span><span class="v" id="clsType">—</span></div>
+      <div class="kv"><span>Confidence</span><span class="v" id="clsConf">—</span></div>
+      <div class="escalation-box" id="escBox">
+        <strong>Verify with:</strong> <span id="escText"></span>
+      </div>
+    </div>
+
+    <div class="side-card">
+      <div class="side-title">Responsible AI</div>
+      <ul class="guardrail-list">
+        <li>Never says "you qualify" — only "you may qualify," framed as guidance, not a determination</li>
+        <li>Final decision always belongs to a named human office, stated every time</li>
+        <li>Over-reliance risk: every answer ends with a verification step, not a conclusion</li>
+      </ul>
+    </div>
+    <button class="reset-link" id="resetBtn">Reset conversation</button>
+  </div>
+</div>
+
+<div class="footnote">
+  This is a hackathon prototype (USAII Global AI Hackathon 2026, Challenge Brief 4). All conversations shown are synthetic demonstration scenarios. No real student data is used or stored. Responses are generated live by Claude (Anthropic). This tool does not make final eligibility or enrollment decisions — always verify with your official university office.
+</div>
+
+<script>
+const SYSTEM_PROMPT = `You are EnviroShield's Benefits & Enrollment Navigator, an AI assistant that helps first-generation and international undergraduate students at U.S. universities understand confusing financial aid, scholarship, and enrollment-hold situations, and identifies clear next steps.
+
+Rules you must always follow:
+1. Never state a definitive eligibility or outcome. Always use "may," "it's possible that," or "this could mean" framing. Never say "you qualify," "you will be fine," or "you are required to."
+2. You do not make final determinations on financial aid, scholarships, or enrollment holds. That decision always belongs to a specific university office (financial aid office, registrar, dean's office, or international student/scholar office). Always name the most relevant one and tell the user to confirm directly with them.
+3. Ask exactly one focused follow-up question per turn until you understand: enrollment status, credit hours completed vs. required, the type of scholarship or aid involved, visa/residency status if relevant, and the specific concern. Do not ask more than one question in a single reply.
+4. Once you have enough information (usually after 2 to 4 exchanges), give: a short plain-language explanation of what is likely going on, the general kind of pathway or policy that may apply (described generally, never as a guarantee), 2 to 4 concrete next steps, and the specific office to verify with.
+5. Keep replies warm, direct, and free of jargon. Keep them concise, under 120 words.
+6. At the end of every reply, on its own line, output a machine-readable block in exactly this format (this will be parsed by the interface and never shown to the user):
+<<META>>{"classification":"short situation label","confidence":NUMBER_0_TO_100,"escalation_office":"specific office name"}<<END>>
+Use "classification":"Unclear / gathering info" and a low confidence number if you are still asking questions and have not yet reached a next-steps answer.`;
+
+let conversation = [];
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+
+function escapeHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function addBubble(role, text){
+  const div = document.createElement('div');
+  div.className = 'bubble ' + role;
+  div.innerHTML = escapeHtml(text).replace(/\n/g,'<br>');
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div;
+}
+
+function setDots(n){
+  for(let i=1;i<=4;i++){
+    document.getElementById('dot'+i).classList.toggle('active', i<=n);
+  }
+}
+
+function updateSidebar(meta){
+  document.getElementById('clsType').textContent = meta.classification || '—';
+  document.getElementById('clsConf').textContent = (meta.confidence!=null ? meta.confidence+'%' : '—');
+  const escBox = document.getElementById('escBox');
+  if(meta.escalation_office){
+    escBox.classList.add('show');
+    document.getElementById('escText').textContent = meta.escalation_office;
+  }
+  setDots(meta.confidence>=40 ? 4 : 2);
+}
+
+async function callModel(){
+  const typingBubble = addBubble('assistant typing', 'Reading your situation...');
+  sendBtn.disabled = true;
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: conversation
+      })
+    });
+    const data = await response.json();
+    const rawText = (data.content || []).filter(b=>b.type==='text').map(b=>b.text).join('\n');
+
+    let displayText = rawText;
+    let meta = null;
+    const match = rawText.match(/<<META>>([\s\S]*?)<<END>>/);
+    if(match){
+      displayText = rawText.replace(match[0], '').trim();
+      try{ meta = JSON.parse(match[1]); }catch(e){ meta = null; }
+    }
+
+    typingBubble.remove();
+    addBubble('assistant', displayText || "Sorry, I had trouble responding. Could you try rephrasing?");
+    conversation.push({role:'assistant', content: rawText});
+    if(meta) updateSidebar(meta);
+  }catch(err){
+    typingBubble.remove();
+    addBubble('assistant', "Connection issue reaching the model. Please try again.");
+    console.error(err);
+  }
+  sendBtn.disabled = false;
+}
+
+function send(text){
+  if(!text || !text.trim()) return;
+  addBubble('user', text);
+  conversation.push({role:'user', content:text});
+  inputEl.value = '';
+  callModel();
+}
+
+sendBtn.addEventListener('click', ()=> send(inputEl.value));
+inputEl.addEventListener('keydown', e=>{ if(e.key==='Enter') send(inputEl.value); });
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click', ()=> send(chip.dataset.msg));
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  conversation = [];
+  messagesEl.innerHTML = '';
+  document.getElementById('clsType').textContent = '—';
+  document.getElementById('clsConf').textContent = '—';
+  document.getElementById('escBox').classList.remove('show');
+  setDots(0);
+  addBubble('assistant', "Hi, I'm here to help you make sense of a financial aid, scholarship, or enrollment-hold situation, and figure out a clear next step. What's going on, in your own words?");
+});
+
+// seed opening message
+addBubble('assistant', "Hi, I'm here to help you make sense of a financial aid, scholarship, or enrollment-hold situation, and figure out a clear next step. What's going on, in your own words?");
+</script>
+</body>
+</html>
